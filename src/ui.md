@@ -3,6 +3,7 @@
 Интерфейс собирается из компонентов дизайн-системы Strix, поэтому выглядит как встроенный. Состояние хранит скрипт: управляемый компонент принимает значение и возвращает новое.
 
 ```lua
+local m = strix.module("Panel", { category = "Misc" })
 local on, volume = false, 5
 
 local panel = strix.ui.window({
