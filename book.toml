@@ -1,0 +1,12 @@
+[book]
+title = "Strix Lua API"
+language = "ru"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+site-url = "/docs/"
+git-repository-url = "https://github.com/strix-org/docs"
