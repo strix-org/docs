@@ -1,5 +1,6 @@
 [book]
-title = "Strix Lua API"
+title = "strix Lua API"
+description = "API скриптов Strix на Luau: модули, события, хуки, рисование, интерфейс и сервисы клиента."
 language = "ru"
 src = "src"
 
@@ -10,3 +11,12 @@ create-missing = false
 [output.html]
 site-url = "/docs/"
 git-repository-url = "https://github.com/strix-org/docs"
+default-theme = "coal"
+preferred-dark-theme = "coal"
+no-section-label = true
+additional-css = ["theme/strix.css"]
+additional-js = ["theme/strix.js"]
+
+# Индекс mdBook выбрасывает кириллицу: поиск свой, индекс — scripts/postbuild.py, интерфейс — theme/strix.js
+[output.html.search]
+enable = false

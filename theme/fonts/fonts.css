@@ -1,0 +1,5 @@
+/* Inter из strix-ui/assets/fonts, подмножество: латиница, кириллица, пунктуация. Лицензия — OFL.txt. */
+@font-face { font-family: Inter; font-weight: 400; font-display: swap; src: url('{{ resource "fonts/inter-regular.woff2" }}') format("woff2"); }
+@font-face { font-family: Inter; font-weight: 500; font-display: swap; src: url('{{ resource "fonts/inter-medium.woff2" }}') format("woff2"); }
+@font-face { font-family: Inter; font-weight: 600; font-display: swap; src: url('{{ resource "fonts/inter-semibold.woff2" }}') format("woff2"); }
+@font-face { font-family: Inter; font-weight: 700; font-display: swap; src: url('{{ resource "fonts/inter-bold.woff2" }}') format("woff2"); }
