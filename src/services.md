@@ -75,6 +75,37 @@ r:release()           -- снять запрос
 | `strix.rotations.step(current, target, step)` → `number` | Шаг к углу |
 | `strix.rotations.correct(yaw, pitch)` → `(number, number)` | Поворот, который может дать мышь при текущей чувствительности (шаг — по настройкам игры) |
 
+## `strix.agent`
+
+Агент ведёт игрока к точке: путь ищет по блокам вокруг, а идёт манерой игрока из включённых записей Nuker (клавиши и
+мышь — из похожих моментов записи, не по правилам). Атаки нет. Поход один: новый `go_to` заменяет прежний. Держи
+ручку, пока идёшь: собранная сборщиком мусора ручка (скрипт выгружен или забыл её) останавливает поход. Не включай
+вместе с Nuker — оба жмут клавиши.
+
+```lua
+local m = strix.module("WalkDemo")
+local walk = nil
+m:on("enable", function() walk = strix.agent.go_to(120, 64, -35) end)
+m:on("disable", function() if walk then walk:stop() end end)
+m:on("tick", function()
+    if walk == nil then return end
+    local status, why = walk:status()
+    if status == "arrived" then strix.log.info("дошли") end
+    if status == "failed" then strix.log.warn("не дошли: " .. tostring(why)) end
+end)
+```
+
+| Функция | Что делает |
+|---|---|
+| `strix.agent.go_to(x, y, z)` → `StrixAgent` | Идти к блоку `x, y, z` (цель — ближайшее место, где можно стоять) |
+
+У `StrixAgent`: `status()` → `(string, string?)` — `"walking"`, `"arrived"`, `"stopped"` (остановлен или заменён
+новым `go_to`), `"failed"` и причина: `"no_world"`, `"no_records"` (нет включённых записей), `"no_path"` (пути нет или
+цель дальше ~200 блоков), `"stuck"`, `"no_match"`; `stop()` — остановить и отпустить клавиши.
+
+Пока: ходьба — только из записей копания, без плавания; полублоки и ступени — как целые блоки (вверх — прыжком), путь
+считается по снимку на старте и заново, когда игрок сбился или застрял.
+
 ## `strix.combat`
 
 | Функция | Что делает |

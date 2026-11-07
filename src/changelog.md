@@ -3,6 +3,10 @@
 Скрипт в каталоге объявляет `api_version` — под какую версию написан; клиент со старшей версией его не запустит.
 Пока API молодое, функции могут сниматься: здесь написано, что снято и чем заменить.
 
+## 9
+
+- `strix.agent.go_to(x, y, z)` → `StrixAgent` (`status()`, `stop()`): поход к точке манерой игрока из записей.
+
 ## 8
 
 - `strix.inventory.switch(slot, mode)` → объект со `:back()`; `strix.inventory.find_best(kind, first, last)`.
