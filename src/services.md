@@ -1,6 +1,6 @@
 # Сервисы клиента
 
-Логика, общая со встроенными модулями. Пользуйся ей вместо своих реализаций через мост: так быстрее и поведение совпадает со встроенными модулями. Все функции работают только внутри колбэка игры.
+Логика, общая со встроенными модулями. Пользуйся ей вместо своих реализаций через мост: так быстрее и поведение совпадает со встроенными модулями. Все функции работают только внутри колбэка игры и только на основном потоке. Исключения: `strix.net.send`, `strix.net.send_bypassing`, `strix.net.latency_ms` и `strix.net.measured_ms` работают с любого.
 
 ## Журнал и уведомления
 
@@ -102,6 +102,38 @@ r:release()           -- снять запрос
 | `strix.net.send_bypassing(packet)` | Отправить мимо перехвата `packet_send` |
 | `strix.net.latency_ms()` | Задержка: замер или таблица игроков |
 | `strix.net.measured_ms()` | Только свой замер; `nil`, пока его нет |
+| `strix.net.capture(fn)` | Пакеты, отправленные внутри `fn`, не уходят: возвращает результат `fn` и их список. Свой клик своим же `packet_send` не поймать — так его можно придержать и отправить позже `send_bypassing` |
+
+## `strix.channel`
+
+Plugin-канал сервера по id `namespace:path`, например протокол сервера поверх `minecraft:custom_payload`. Тело — строка байт; читать её удобно через `buffer.fromstring`.
+
+```lua
+strix.channel.listen("dw:evoplus", function(data, age)
+    local b = buffer.fromstring(data)
+    print(#data, buffer.readu8(b, 0), age)
+end)
+strix.main(function() strix.channel.send("dw:handshake", string.char(0)) end)
+```
+
+| Функция | Что делает |
+|---|---|
+| `strix.channel.listen(id, handler)` | Принимать канал: `handler(data, age)` — тело и сколько секунд назад оно пришло. Основной поток, раз в тик на каждое тело; снимается вместе со скриптом, можно из [библиотеки](modules.md#библиотеки) |
+| `strix.channel.send(id, data)` | Отправить тело в канал; только основной поток |
+
+## `strix.json` и `strix.every_tick`
+
+| Функция | Что делает |
+|---|---|
+| `strix.json.decode(text)` | JSON → таблица; `null` становится `nil`. Ошибка разбора — ошибка Lua |
+| `strix.json.encode(value)` | Таблица → JSON |
+| `strix.hash.sha256(data)` | SHA-256 строки байт, hex строчными |
+| `strix.every_tick(f)` | Звать `f` раз в тик на основном потоке, даже без включённого модуля; снимается вместе со скриптом. Для [библиотек](modules.md#библиотеки), которым нужен тик (протокол сервера) |
+
+```lua
+local pets = strix.json.decode('[{"pet":"owl","level":3}]')
+print(pets[1].pet, strix.json.encode({ a = 1 }))
+```
 
 ## `strix.server`
 
@@ -163,10 +195,10 @@ end
 | `strix.client.totem()` | Состояние AutoTotem |
 | `strix.account()` | Имя аккаунта Strix или `nil` |
 | `strix.i18n.t(key)`, `strix.i18n.set(key, { en, ru })` | Перевод, свой перевод |
+| `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`). Значения скрипта снимаются при его выгрузке |
 
 ## Что недоступно из скрипта
 
-- Отмена входящих пакетов и всё на сетевом потоке: скрипт исполняется только на основном.
 - Облако конфигов, обновление клиента и токены: это управление аккаунтом.
 - Safe Mode и прокси.
 - Запись копания Nuker: она принадлежит модулю Nuker.

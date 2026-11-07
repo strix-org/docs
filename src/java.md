@@ -9,7 +9,7 @@ if player then
     print(player:getYRot())        -- метод, через двоеточие
     player:setSprinting(true)
     local pos = player:position()
-    print(pos.x, pos.y, pos.z)
+    print(pos:x(), pos:y(), pos:z())
 end
 ```
 

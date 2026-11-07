@@ -27,7 +27,7 @@ end)
 
 ## Экран
 
-Событие `render_2d` получает `overlay, width, height, scale`. Координаты в единицах GUI. `container_render` получает такой же `overlay` поверх контейнерного экрана.
+Событие `render_2d` получает `overlay, width, height, scale`. Все координаты, `width` и `height` — в единицах GUI: центр экрана, где прицел, это `width / 2, height / 2`. `scale` — масштаб GUI; курсор `mouseHandler:xpos()` отдаёт пиксели окна, их нужно делить на него. `container_render` получает такой же `overlay` поверх контейнерного экрана.
 
 | Метод | Что рисует |
 |---|---|
@@ -43,7 +43,7 @@ end)
 
 | Метод | Что делает |
 |---|---|
-| `o:project(x, y, z)` | Мир → экран: `sx, sy` или `nil` за камерой |
+| `o:project(x, y, z)` | Мир → экран: `sx, sy`; `nil` за камерой и дальше дальней плоскости |
 | `o:project_box(box)` | Бокс → `x, y, w, h` или `nil` |
 | `o:push_clip(x, y, w, h)`, `o:pop_clip()` | Обрезка |
 | `o:push_rotate(x, y, degrees, scale)`, `o:pop_transform()` | Поворот вокруг точки |
@@ -65,7 +65,7 @@ end)
 | `s:grade({ exposure, contrast, temperature, tint, saturation, vibrance, lift, gain, vignette })` | Цветокоррекция |
 | `s:outline({ owner, targets, max_line_width, hide_hand })` | Силуэты сущностей: до 8 целей со своим видом |
 | `s:blocks(target)` | Силуэты блоков: геометрию кладёт очередь `silhouettes` из `render_3d` |
-| `s:runes({ { a, b }, { a, b }, { a, b } })` | Три группы силуэтов с градиентом |
+| `s:runes({ { a, b }, { a, b }, { a, b } })` | Три группы силуэтов с градиентом; пара — `{ a = {r,g,b}, b = {r,g,b} }` или `{ {r,g,b}, {r,g,b} }`, доли 0..1 |
 | `s:hand(on)` | Забрать руку первого лица в силуэт |
 
 Настройка цели: `mode` — `default`, `gradient`, `rainbow_xy`, `rainbow_x`, `rainbow_y`, `glass`, `off`; цвета `fill`, `stroke` — `{ r, g, b, a }` и `color1`, `color2` — `{ r, g, b }` в долях 0..1; числа `scale`, `speed`, `fill_alpha`, `outline_alpha`, `brightness`, `saturation`, `line_width`; стекло `glass_blur_size`, `glass_quality`, `glass_directions`, `glass_refraction`, `glass_bg_blur`, `glass_chromatic`, `glass_distortion`.
@@ -84,5 +84,16 @@ end)
 ```
 
 В кадре силуэтами сущностей владеет один модуль: при нескольких заявках действует последняя. `entity_outline` зовётся на каждую сущность: держи обработчик коротким.
+
+## Скрытые сущности
+
+`strix.render.hide(ids)` — не рисовать сущности с этими id (`entity:getId()`). Список скрипта заменяется целиком, `{}` снимает всё; снимается и вместе со скриптом. Проверка идёт в Rust на каждую сущность в кадре без входа в скрипт, поэтому список считай редко, например раз в 10 тиков.
+
+```lua
+local stands = {}
+m:on("tick", function(mc)
+    -- собрать id и передать: strix.render.hide(stands)
+end)
+```
 
 `strix.color(r, g, b, a)` собирает цвет `0xAARRGGBB`.

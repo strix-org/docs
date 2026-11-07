@@ -51,7 +51,7 @@ end)
 
 ## Элементы HUD
 
-`strix.hud({ key, title, icon, draw, update, visible })` объявляет элемент: он появляется в редакторе HUD и сохраняет позицию, масштаб и включённость как встроенный.
+`strix.hud({ key, title, icon, draw, update, visible, placement, enabled })` объявляет элемент: он появляется в редакторе HUD и сохраняет позицию, масштаб и включённость как встроенный. `placement = { x, y }` — место по умолчанию в долях экрана, `enabled = false` — выключен, пока игрок не включит.
 
 ```lua
 local e = strix.hud({
@@ -67,7 +67,8 @@ local big = e:toggle("big", { default = false })
 
 - `draw(ui, editing)` рисует каждый кадр; `editing` — открыт редактор HUD, можно показать пример данных;
 - `update(preview)` обновляет данные перед `draw`;
-- `visible()` — `false` скрывает элемент в игре.
+- `visible()` — `false` скрывает элемент в игре;
+- `e:is_enabled()` — включён ли элемент игроком.
 
 У элемента те же настройки, что у модуля: `e:toggle`, `e:slider`, `e:range`, `e:mode`, `e:multi`, `e:text`, `e:color`, `e:bind`, `e:items`. Сбой рисования пишется в консоль, и элемент замолкает до перезапуска скрипта.
 
@@ -79,8 +80,54 @@ local big = e:toggle("big", { default = false })
 | `ui:pill(function(ui) ... end)` | Пилюля |
 | `ui:header(title, meta, icon)` | Заголовок карточки |
 | `ui:row(label, value, color)` | Строка `подпись — значение` |
+| `ui:body(function(ui) ... end)` | Тело карточки со списком строк |
+| `ui:block(top, bottom, function(ui) ... end)` | Блок со своими отступами сверху и снизу |
+| `ui:row(label, value, color, lead)` | Строка: `value` — текст или `function(ui)` справа, `lead` — `function(ui)` слева |
+| `ui:line(height, text, { weight, color }, lead, trailing)` | Строка своей высоты; `text` может быть `nil` |
+| `ui:appear(id, function(ui) ... end)` | Появление новой строки списка; `id` — стабильный ключ строки |
 | `ui:empty(text)` | Пустое состояние |
-| `ui:divider()` | Разделитель |
+| `ui:divider()`, `ui:vdivider()` | Разделитель: горизонтальный и вертикальный |
+| `ui:value(text, color)` | Значение справа в строке |
+| `ui:unit(text)`, `ui:metric(value, unit)`, `ui:hero(value, unit)` | Единица, метрика, крупное значение |
+| `ui:keycap(key)` | Клавиша бинда |
+| `ui:chip(text, strong)` | Метка |
+| `ui:phase(current, total)` | Фаза `1/3` |
+| `ui:ready(text)` | «Готово» цветом успеха |
+| `ui:glyph(icon, color)`, `ui:dot(color)` | Иконка и точка строки |
+| `ui:icon_box(icon, color, side, size)` | Квадрат под иконку строки |
+| `ui:progress({ { frac, color }, ... }, micro)` | Полоса из сегментов; `micro` — тонкая |
+| `ui:segments({ { text, color }, ... }, max_width)` | Текст из цветных частей; тёмные цвета поднимаются до читаемых |
+| `ui:cooldown_slot(left, timer, color, item)` | Слот предмета с маской кулдауна `left` 0..1 |
+| `ui:timer_cell(text)` | Ячейка времени в начале строки шага |
+| `ui:boss_head(item, title, { current, total }, sub, hp)` | Шапка карточки босса: плитка с предметом (`nil` — корона), имя и фаза, ниже подпись и HP |
+
+`ui:item(stack, size)` принимает и `{ material = "potion", model = 3 }` — предмет по материалу и модели. `nil` — пустое место под иконку. Размеры строк HUD — `strix.ui.sizes.item` (иконка предмета), `strix.ui.sizes.icon` и `strix.ui.sizes.row` (высота строки). `ui:header(title, meta, icon)` принимает вместо имени иконки и `function(ui)` — например, `ui:item(...)`.
+
+Цвета — `strix.ui.colors`: `text`, `text_muted`, `text_subtle`, `accent`, `success`, `warning`, `danger`, `trail`, `track`, `money`, `shards`, `level`, `blocks`. Форматы чисел HUD, как у встроенных элементов:
+
+| Функция | Пример |
+|---|---|
+| `strix.format.decimal(v)` | `14.5`, `14` |
+| `strix.format.compact(v)` | `157`, `1.2K`, `4.7T` |
+| `strix.format.integer(v)` | `3 453 234` |
+| `strix.format.duration(ms)` | `2:05`, `1:02:05`; `nil` — `∞` |
+| `strix.format.percent(v)` | `1.05` → `105%` |
+
+```lua
+strix.hud({
+    key = "Timers", title = "Таймеры", icon = "clock-3", placement = { x = 0.7, y = 0.55 },
+    draw = function(ui)
+        ui:card("s", function(ui)
+            ui:header("Таймеры", nil, "clock-3")
+            ui:divider()
+            ui:body(function(ui)
+                ui:row("Сила", function(ui) ui:value(strix.format.duration(125000), strix.ui.colors.warning) end, strix.ui.colors.text_muted,
+                    function(ui) ui:icon_box("crown", strix.ui.colors.warning) end)
+            end)
+        end)
+    end,
+})
+```
 
 ## Панель на контейнере
 
