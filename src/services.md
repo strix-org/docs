@@ -106,6 +106,49 @@ end)
 Пока: ходьба — только из записей копания, без плавания; полублоки и ступени — как целые блоки (вверх — прыжком), путь
 считается по снимку на старте и заново, когда игрок сбился или застрял.
 
+## `strix.records`
+
+Записи, по которым играют Nuker и агент: скрипт может писать их сам. Запись — текст по строкам (его читает и `upload`):
+
+| Строка | Что |
+|---|---|
+| `# strix-mine v2 min=x,y,z max=x,y,z` и ряды `m,y,z,клетки` | Карта региона на старте — её даёт `map` |
+| `t,мс,yaw,pitch,x,y,z,клавиши` | Начало тика: взгляд, ноги, клавиши (`keys()`) |
+| `b,x,y,z` | Блок сломан в этом тике |
+| `f,мс,yaw,pitch` | Камера на кадре рендера (событие `scene_frame`) |
+
+Мс — от начала записи. Клетки карты: `.` — воздух и проходимое (трава), `d` — цель (блоки из `targets`), `#` — прочее
+твёрдое и жидкость; вне карты — воздух, поэтому регион должен накрывать всё, где будет игрок. Клавиши — биты:
+вперёд 1, назад 2, влево 4, вправо 8, прыжок 16, присед 32, спринт 64, атака 128, ПКМ 256.
+
+```lua
+local m = strix.module("RecorderDemo")
+local text, t0 = {}, 0
+local function ms() return math.floor((os.clock() - t0) * 1000) end
+m:on("enable", function()
+    local me = strix.mc().player
+    local x, y, z = math.floor(me:getX()), math.floor(me:getY()), math.floor(me:getZ())
+    text, t0 = { strix.records.map(x - 48, y - 16, z - 48, x + 48, y + 16, z + 48) }, os.clock()
+end)
+m:on("tick", function(mc)
+    local me = mc.player
+    if me == nil then return end
+    table.insert(text, string.format("t,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%d", ms(), me:getYRot(), me:getXRot(), me:getX(), me:getY(), me:getZ(), strix.records.keys()))
+end)
+m:on("disable", function()
+    local ok, why = strix.records.upload("Ходьба", table.concat(text, "\n"))
+    if not ok then strix.log.warn("не загружено: " .. tostring(why)) end
+end)
+```
+
+| Функция | Что делает |
+|---|---|
+| `strix.records.keys()` → `number` | Клавиши этого тика (биты выше) и прыжок авто-прыжка игры; нет игрока — 0 |
+| `strix.records.map(x1, y1, z1, x2, y2, z2, targets)` → `string` | Карта бокса блоков: заголовок и ряды `m`; `targets` (`{ "minecraft:stone" }`, необязательно) — цели `d`. Не больше ~4 млн клеток |
+| `strix.records.upload(name, data)` → `(boolean, string?)` | Запись в облако (упаковывается в `v3`); `false` и причина: `"offline"`, `"loading"`, `"full"` (нет слота), `"bad_format"`, `"empty"` |
+
+Загруженная запись появляется в списке записей Nuker и включается там же.
+
 ## `strix.combat`
 
 | Функция | Что делает |
