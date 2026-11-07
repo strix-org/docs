@@ -99,6 +99,14 @@ end)
 |---|---|
 | `strix.agent.go_to(x, y, z, spec)` → `StrixAgent` | Идти к блоку `x, y, z` (цель — ближайшее место, где можно стоять). `spec.records` (необязательно) — вид записей: только включённые записи с этим именем (`{ records = "Ходьба" }`), без него — все включённые |
 
+`strix.agent.mind(spec)` → `StrixMind` — мозг бота: тело (свою сущность) ведёт скрипт, мозг по записям решает, что
+бот делает этот тик. `spec`: `map` — карта (текст `strix.records.map` или своя: заголовок и ряды `m`), `records` — вид
+записей (как у `go_to`), `bounds` — `{ x1, y1, z1, x2, y2, z2 }` бокса копания (необязательно), `yaw`/`pitch` —
+взгляд на старте. Нет включённых записей вида — ошибка. У `StrixMind`: `step(x, y, z)` → `{ keys, yaw, pitch, hit }`
+или `nil` (ноги бота → клавиши тика, взгляд после пути мыши, `hit` — `{ x, y, z }` блока, который ломает удар);
+`set(x, y, z, cell)` — клетка карты изменилась (`"air"`, `"target"`, `"wall"`: слом, сброс); `reset(yaw, pitch)` —
+телепорт. Боты рекордера — `scripts/Recorder.luau`.
+
 У `StrixAgent`: `status()` → `(string, string?)` — `"walking"`, `"arrived"`, `"stopped"` (остановлен или заменён
 новым `go_to`), `"failed"` и причина: `"no_world"`, `"no_records"` (нет включённых записей), `"no_path"` (пути нет или
 цель дальше ~200 блоков), `"stuck"`, `"no_match"`; `stop()` — остановить и отпустить клавиши.
@@ -146,6 +154,7 @@ end)
 |---|---|
 | `strix.records.keys()` → `number` | Клавиши этого тика (биты выше) и прыжок авто-прыжка игры; нет игрока — 0 |
 | `strix.records.map(x1, y1, z1, x2, y2, z2, targets)` → `string` | Карта бокса блоков: заголовок и ряды `m`; `targets` (`{ "minecraft:stone" }`, необязательно) — цели `d`. Не больше ~4 млн клеток |
+| `strix.records.breaks(kind)` → `{ { min, size, breaks } }` | Свои сломы записей вида `kind` (все, и выключенные; без вида — все): низ и размер региона карты, блоки `{ x, y, z }`, сломанные под прицелом игрока. Покрытие шахты рекордера |
 | `strix.records.entities(types, radius)` → `string` | Строки `e` этого тика: хитбоксы сущностей видов `types` (`{ "minecraft:zombie" }`) не дальше `radius` от ног, кроме самого игрока; нет — `""` |
 | `strix.records.upload(name, data)` → `(boolean, string?)` | Запись в облако (упаковывается в `v3`); `false` и причина: `"offline"`, `"loading"`, `"full"` (нет слота), `"bad_format"`, `"empty"` |
 
@@ -263,7 +272,7 @@ end
 | `strix.explosion.CRYSTAL_POWER` | Сила взрыва кристалла |
 | `strix.account()` → `string?` | Имя аккаунта Strix или `nil` |
 | `strix.i18n.t(key)` → `string`, `strix.i18n.set(key, translations)` | Перевод, свой перевод (`translations` — `{ en, ru }`) |
-| `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`). Значения скрипта снимаются при его выгрузке |
+| `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`), `hud.mine` — виртуальная шахта рекордера в BPS (`{ left, done }`: блоков до сброса и доля выкопанного до него). Значения скрипта снимаются при его выгрузке |
 
 ## Что недоступно из скрипта
 
