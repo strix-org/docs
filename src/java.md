@@ -1,6 +1,8 @@
 # Мост к игре
 
 Любой объект игры в Lua ведёт себя как объект Java: методы и поля по настоящим именам из исходников Minecraft.
+Какие классы и члены есть и как они называются — [справочник SDK](sdk.md) (поиск по версиям игры) и
+`java.describe` прямо в скрипте.
 
 ```lua
 local mc = strix.mc()              -- Minecraft.getInstance()
@@ -13,7 +15,7 @@ if player then
 end
 ```
 
-`strix.mc()` возвращает `Minecraft.getInstance()`.
+`strix.mc()` → `any` возвращает `Minecraft.getInstance()`.
 
 ## Классы и объекты
 
@@ -23,6 +25,7 @@ end
 | `java.new(class, ...)` | Новый объект, `new` |
 | `java.get(obj, field)`, `java.set(obj, field, value)` | Поле, когда есть одноимённый метод |
 | `java.instanceof(obj, name)` | Проверка типа |
+| `java.describe(class)` | Справка о классе (имя или объект): `{ name, constructors, methods = { { name, params, returns, static } }, fields = { { name, type, static } } }`, типы — как в Java (`int`, `net.minecraft.world.phys.Vec3`), члены — с суперклассами и интерфейсами |
 
 ```lua
 local Vec3 = java.class("net.minecraft.world.phys.Vec3")

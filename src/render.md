@@ -65,12 +65,12 @@ end)
 | `s:grade({ exposure, contrast, temperature, tint, saturation, vibrance, lift, gain, vignette })` | Цветокоррекция |
 | `s:outline({ owner, targets, max_line_width, hide_hand })` | Силуэты сущностей: до 8 целей со своим видом |
 | `s:blocks(target)` | Силуэты блоков: геометрию кладёт очередь `silhouettes` из `render_3d` |
-| `s:runes({ { a, b }, { a, b }, { a, b } })` | Три группы силуэтов с градиентом; пара — `{ a = {r,g,b}, b = {r,g,b} }` или `{ {r,g,b}, {r,g,b} }`, доли 0..1 |
+| `s:groups({ { a, b }, { a, b }, { a, b } })` | Три группы силуэтов с градиентом; пара — `{ a = {r,g,b}, b = {r,g,b} }` или `{ {r,g,b}, {r,g,b} }`, доли 0..1 |
 | `s:hand(on)` | Забрать руку первого лица в силуэт |
 
 Настройка цели: `mode` — `default`, `gradient`, `rainbow_xy`, `rainbow_x`, `rainbow_y`, `glass`, `off`; цвета `fill`, `stroke` — `{ r, g, b, a }` и `color1`, `color2` — `{ r, g, b }` в долях 0..1; числа `scale`, `speed`, `fill_alpha`, `outline_alpha`, `brightness`, `saturation`, `line_width`; стекло `glass_blur_size`, `glass_quality`, `glass_directions`, `glass_refraction`, `glass_bg_blur`, `glass_chromatic`, `glass_distortion`.
 
-Какой сущности какая цель, решает `entity_outline`. Обработчик возвращает ключ: `strix.render.key_target(i)` для цели 1..8 или `strix.render.key_rune(i)` для группы 1..3.
+Какой сущности какая цель, решает `entity_outline`. Обработчик возвращает ключ: `strix.render.key_target(index)` → `number` для цели 1..8 или `strix.render.key_group(index)` для группы 1..3 (её цвета задаёт `s:groups`). Третий аргумент `entity_outline` — `true`, если в кадре есть заявка групп.
 
 ```lua
 m:on("scene_frame", function(s)
@@ -96,4 +96,4 @@ m:on("tick", function(mc)
 end)
 ```
 
-`strix.color(r, g, b, a)` собирает цвет `0xAARRGGBB`.
+`strix.color(r, g, b, a)` → `number` собирает цвет `0xAARRGGBB`.

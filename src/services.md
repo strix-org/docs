@@ -15,7 +15,7 @@
 
 ## Команды
 
-`strix.command(tree)` добавляет подсказки команды в чат. Исполнение — событие `command`.
+`strix.command(spec)` добавляет подсказки команды в чат. Исполнение — событие `command`.
 
 ```lua
 strix.command({ name = "gg", children = {
@@ -39,24 +39,18 @@ end)
 | `strix.inventory.click_slot(container, slot, button, input)` | Клик; `input`: `PICKUP`, `QUICK_MOVE`, `SWAP`, … |
 | `strix.inventory.pickup_slot(container, slot)` | Взять или положить |
 | `strix.inventory.index_to_slot(index)` | Индекс `Inventory` → слот меню |
-| `strix.inventory.switch_slot(server_slot, mode, slot, previous)` | Сменить слот; `mode`: `normal`, `silent`, `alternative`, `none` |
-| `strix.inventory.switch_back(server_slot, mode, slot, previous)` | Вернуть слот |
+| `strix.inventory.switch(slot, mode)` → `StrixSlotSwitch` | Сменить слот хотбара; `mode`: `normal` (по умолчанию), `silent`, `alternative`, `none`. `switch:back()` вернёт прежний слот (второй вызов ничего не делает) |
 | `strix.inventory.swap(mode, slot, target)` | Обмен; `mode`: `pickup`, `swap` |
 | `strix.inventory.swap_inventory(slot, target)` | Обмен в инвентаре |
 | `strix.inventory.swing(mode)` | Взмах; `main_hand`, `off_hand`, `packet`, `none` |
-| `strix.inventory.using_main_hand(player)` | Предмет используется основной рукой |
-| `strix.inventory.enchant_level(stack, id)` | Уровень чара |
-| `strix.inventory.find_best_sword(first, last)` | Лучший меч |
-| `strix.inventory.find_best_axe(first, last)` | Лучший топор |
-| `strix.inventory.find_best_chestplate(first, last)` | Лучший нагрудник |
-| `strix.inventory.find_best_knockback(first, last)` | Лучшая отдача: слот и уровень |
-| `strix.inventory.find_best_pickaxe()` | Лучшая кирка |
-| `strix.inventory.equip_best_pickaxe()` | Взять лучшую кирку |
-| `strix.inventory.find_fast_item(state, first, last)` | Быстрее всего ломает блок |
-| `strix.inventory.find(item, first, last)` | По объекту `Item` |
-| `strix.inventory.find_name(name, first, last)` | По имени |
-| `strix.inventory.count_name(name, first, last)` | Сколько предметов с именем |
-| `strix.inventory.find_empty_slot(first, last)` | Пустой слот |
+| `strix.inventory.using_main_hand(player)` → `boolean` | Предмет используется основной рукой |
+| `strix.inventory.enchant_level(stack, id)` → `number` | Уровень чара |
+| `strix.inventory.find_best(kind, first, last)` → `(number, number?)` | Лучший предмет вида `kind`: `sword`, `axe`, `chestplate`, `knockback`, `pickaxe`; диапазон по умолчанию — хотбар 0..8. У `knockback` второе значение — уровень чар, `pickaxe` ищет только в хотбаре (мультитул по имени первым). Взять найденное — `switch(slot)` |
+| `strix.inventory.find_fast_item(state, first, last)` → `number` | Быстрее всего ломает блок |
+| `strix.inventory.find(item, first, last)` → `number` | По объекту `Item` |
+| `strix.inventory.find_name(name, first, last)` → `number` | По имени |
+| `strix.inventory.count_name(name, first, last)` → `number` | Сколько предметов с именем |
+| `strix.inventory.find_empty_slot(first, last)` → `number` | Пустой слот |
 
 ## `strix.rotations`
 
@@ -71,28 +65,28 @@ r:release()           -- снять запрос
 
 | Функция | Что делает |
 |---|---|
-| `strix.rotations.request(priority, yaw, pitch)` | Новый запрос |
-| `strix.rotations.current()` | Текущая ротация: `yaw, pitch` или `nil` |
-| `strix.rotations.for_pick()` | Ротация для поиска цели |
-| `strix.rotations.with_move_fix()` | Ротация с коррекцией движения |
+| `strix.rotations.request(priority, yaw, pitch)` → `StrixRotation` | Новый запрос |
+| `strix.rotations.current()` → `(number?, number?)` | Текущая ротация: `yaw, pitch` или `nil` |
+| `strix.rotations.for_pick()` → `(number?, number?)` | Ротация для поиска цели |
+| `strix.rotations.with_move_fix()` → `(number?, number?)` | Ротация с коррекцией движения |
 | `strix.rotations.set_move_fix(on)` | Коррекция движения |
 | `strix.rotations.cancel_return()` | Не возвращать плавно к камере |
 | `strix.rotations.send_packet(yaw, pitch)` | Отправить поворот пакетом |
-| `strix.rotations.step(current, target, step)` | Шаг к углу |
-| `strix.rotations.gcd(options)` | GCD мыши |
-| `strix.rotations.correct(yaw, pitch, gcd)` | Округлить под GCD |
+| `strix.rotations.step(current, target, step)` → `number` | Шаг к углу |
+| `strix.rotations.correct(yaw, pitch)` → `(number, number)` | Поворот, который может дать мышь при текущей чувствительности (шаг — по настройкам игры) |
 
 ## `strix.combat`
 
 | Функция | Что делает |
 |---|---|
-| `strix.combat.attack_ready(player)` | Удар восстановился |
-| `strix.combat.crits(player)` | Этот удар будет критом |
-| `strix.combat.can_critical(player)` | Условия крита выполнены |
-| `strix.combat.find_fall(player, fall)` | Падение на нужную высоту |
-| `strix.combat.hit_delay_ms()` | Задержка подтверждения удара |
-| `strix.combat.expected_hurt_ticks()` | Ожидаемая неуязвимость |
-| `strix.combat.lands(hurt_time)` | Удар пройдёт |
+| `strix.combat.attack_ready(player)` → `boolean` | Удар восстановился |
+| `strix.combat.crits(player)` → `boolean` | Этот удар будет критом |
+| `strix.combat.can_critical(player)` → `boolean` | Условия крита выполнены |
+| `strix.combat.find_fall(player, fall)` → `boolean` | Падение на нужную высоту |
+| `strix.combat.hit_delay_ms()` → `number` | Задержка подтверждения удара |
+| `strix.combat.expected_hurt_ticks()` → `number` | Ожидаемая неуязвимость |
+| `strix.combat.lands(hurt_time)` → `boolean` | Удар пройдёт |
+| `strix.combat.totem_pops(entity_id)` → `number` | Сколько тотемов сгорело у сущности с её появления |
 
 ## `strix.net`
 
@@ -100,9 +94,9 @@ r:release()           -- снять запрос
 |---|---|
 | `strix.net.send(packet)` | Отправить пакет |
 | `strix.net.send_bypassing(packet)` | Отправить мимо перехвата `packet_send` |
-| `strix.net.latency_ms()` | Задержка: замер или таблица игроков |
-| `strix.net.measured_ms()` | Только свой замер; `nil`, пока его нет |
-| `strix.net.capture(fn)` | Пакеты, отправленные внутри `fn`, не уходят: возвращает результат `fn` и их список. Свой клик своим же `packet_send` не поймать — так его можно придержать и отправить позже `send_bypassing` |
+| `strix.net.latency_ms()` → `number?` | Задержка: замер или таблица игроков |
+| `strix.net.measured_ms()` → `number?` | Только свой замер; `nil`, пока его нет |
+| `strix.net.capture(fn)` → `(any, { any })` | Пакеты, отправленные внутри `fn`, не уходят: возвращает результат `fn` и их список. Свой клик своим же `packet_send` не поймать — так его можно придержать и отправить позже `send_bypassing` |
 
 ## `strix.channel`
 
@@ -127,7 +121,7 @@ strix.main(function() strix.channel.send("dw:handshake", string.char(0)) end)
 |---|---|
 | `strix.json.decode(text)` | JSON → таблица; `null` становится `nil`. Ошибка разбора — ошибка Lua |
 | `strix.json.encode(value)` | Таблица → JSON |
-| `strix.hash.sha256(data)` | SHA-256 строки байт, hex строчными |
+| `strix.hash.sha256(data)` → `string` | SHA-256 строки байт, hex строчными |
 | `strix.every_tick(f)` | Звать `f` раз в тик на основном потоке, даже без включённого модуля; снимается вместе со скриптом. Для [библиотек](modules.md#библиотеки), которым нужен тик (протокол сервера) |
 
 ```lua
@@ -141,10 +135,10 @@ print(pets[1].pet, strix.json.encode({ a = 1 }))
 
 | Функция | Что делает |
 |---|---|
-| `strix.server.state()` | `{ slot, yaw, pitch, x, y, z, on_ground, sprinting, sneaking, moving_keys, horizontal_collision }` |
-| `strix.server.is_npc(player)` | Игрок похож на NPC |
-| `strix.server.health(entity, absorption)` | Здоровье, с поглощением по запросу |
-| `strix.server.is_valid(entity)` | Подходит как цель |
+| `strix.server.state()` → `{ [string]: any }` | `{ slot, yaw, pitch, x, y, z, on_ground, sprinting, sneaking, moving_keys, horizontal_collision }` |
+| `strix.server.is_npc(player)` → `boolean` | Игрок похож на NPC |
+| `strix.server.health(entity, absorption)` → `number` | Здоровье, с поглощением по запросу |
+| `strix.server.is_valid(entity)` → `boolean` | Подходит как цель |
 
 ## `strix.world`
 
@@ -160,41 +154,38 @@ if chunk then
 end
 ```
 
-`strix.world.chunk(level, x, z)` читает снимок чанка, `strix.world.block_state_id(state)` даёт id состояния. У снимка: `state(x, y, z)`, `find(ids, limit)`.
+`strix.world.chunk(level, x, z)` → `StrixChunk?` читает снимок чанка, `strix.world.block_state_id(state)` даёт id состояния. У снимка: `state(x, y, z)`, `find(ids, limit)`.
 
 ## Списки
 
 | Функция | Что делает |
 |---|---|
 | `strix.friends.add(name)`, `strix.friends.remove(name)`, `strix.friends.clear()` | Друзья |
-| `strix.friends.is_friend(name)`, `strix.friends.list()` | Проверка, список |
-| `strix.macros.add(name, command, key, mouse)`, `strix.macros.remove(name)`, `strix.macros.list()` | Макросы |
-| `strix.waypoints.add(name, x, z)`, `strix.waypoints.remove(name)`, `strix.waypoints.list()` | Вейпоинты |
+| `strix.friends.is_friend(name)` → `boolean`, `strix.friends.list()` | Проверка, список |
+| `strix.macros.add(name, command, key, mouse)`, `strix.macros.remove(name)` → `boolean`, `strix.macros.list()` | Макросы |
+| `strix.waypoints.add(name, x, z)`, `strix.waypoints.remove(name)` → `boolean`, `strix.waypoints.list()` | Вейпоинты |
 
 ## Клавиши и предметы
 
 | Функция | Что делает |
 |---|---|
-| `strix.keys.code(field)` | Код GLFW по имени: `SPACE`, `G`, `LEFT_SHIFT` |
-| `strix.keys.name(code)` | Имя клавиши |
-| `strix.keys.label(code, mouse)` | Подпись бинда |
-| `strix.keys.fields()` | Все имена и коды |
-| `strix.items.blocks()` | Блоки: `{ { id, name } }`, пусто до загрузки реестра |
+| `strix.keys.code(field)` → `number?` | Код GLFW по имени: `SPACE`, `G`, `LEFT_SHIFT` |
+| `strix.keys.name(code)` → `string` | Имя клавиши |
+| `strix.keys.label(code, mouse)` → `string` | Подпись бинда |
+| `strix.keys.fields()` → `{ [string]: number }` | Все имена и коды |
+| `strix.items.blocks()` → `{ { id: string, name: string } }` | Блоки: `{ { id, name } }`, пусто до загрузки реестра |
 
 ## Прочее
 
 | Функция | Что делает |
 |---|---|
-| `strix.bossbars.read()` | Боссбары: `{ { id, text, progress } }` |
-| `strix.bossbars.hide(overlay, ids)`, `strix.bossbars.restore(overlay)` | Скрыть, вернуть |
-| `strix.explosion.damage(entity, power, dist, seen, difficulty)` | Урон взрыва с учётом защиты; `difficulty`: `peaceful`, `easy`, `normal`, `hard` |
-| `strix.explosion.raw(power, dist, seen, difficulty)` | Урон до защиты |
+| `strix.bossbars.read()` → `{ { id: string, text: string, progress: number } }` | Боссбары: `{ { id, text, progress } }` |
+| `strix.bossbars.hide(ids)` | Не рисовать бары с этими id; список скрипта заменяется целиком, `{}` — вернуть все. Снимаются при выгрузке скрипта |
+| `strix.explosion.damage(entity, power, dist, seen, difficulty)` → `number` | Урон взрыва с учётом защиты; `difficulty`: `peaceful`, `easy`, `normal`, `hard` |
+| `strix.explosion.raw(power, dist, seen, difficulty)` → `number` | Урон до защиты |
 | `strix.explosion.CRYSTAL_POWER` | Сила взрыва кристалла |
-| `strix.client.totem_pops(entity_id)` | Сгоревшие тотемы сущности |
-| `strix.client.is_hidden(entity_id)` | Скрыт модулем Hide |
-| `strix.client.totem()` | Состояние AutoTotem |
-| `strix.account()` | Имя аккаунта Strix или `nil` |
-| `strix.i18n.t(key)`, `strix.i18n.set(key, { en, ru })` | Перевод, свой перевод |
+| `strix.account()` → `string?` | Имя аккаунта Strix или `nil` |
+| `strix.i18n.t(key)` → `string`, `strix.i18n.set(key, translations)` | Перевод, свой перевод (`translations` — `{ en, ru }`) |
 | `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`). Значения скрипта снимаются при его выгрузке |
 
 ## Что недоступно из скрипта

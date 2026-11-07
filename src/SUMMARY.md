@@ -7,6 +7,8 @@
 * [Хуки](hooks.md)
 * [Потоки](threads.md)
 * [Мост к игре](java.md)
+  * [Справочник SDK](sdk.md)
 * [Рисование](render.md)
 * [Интерфейс и HUD](ui.md)
 * [Сервисы клиента](services.md)
+* [Версии API](changelog.md)

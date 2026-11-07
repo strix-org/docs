@@ -45,13 +45,13 @@ end)
 
 ## Окна
 
-`strix.ui.window({ id, title, width, x, y, open, draw })` объявляет окно при загрузке скрипта. Оно рисуется поверх меню, пока то открыто, и перетаскивается за шапку. `draw` получает `ui` и зовётся каждый кадр.
+`strix.ui.window(spec)` → `StrixWindow` объявляет окно при загрузке скрипта; `spec` — `{ id, title, width, x, y, open, draw }`. Оно рисуется поверх меню, пока то открыто, и перетаскивается за шапку. `draw` получает `ui` и зовётся каждый кадр.
 
 Методы окна: `open()`, `close()`, `toggle()`, `is_open()`. Ошибка в `draw` пишется в консоль и закрывает окно.
 
 ## Элементы HUD
 
-`strix.hud({ key, title, icon, draw, update, visible, placement, enabled })` объявляет элемент: он появляется в редакторе HUD и сохраняет позицию, масштаб и включённость как встроенный. `placement = { x, y }` — место по умолчанию в долях экрана, `enabled = false` — выключен, пока игрок не включит.
+`strix.hud(spec)` → `StrixHudElement` объявляет элемент (`spec` — `{ key, title, icon, draw, update, visible, placement, enabled }`): он появляется в редакторе HUD и сохраняет позицию, масштаб и включённость как встроенный. `placement = { x, y }` — место по умолчанию в долях экрана, `enabled = false` — выключен, пока игрок не включит.
 
 ```lua
 local e = strix.hud({
@@ -103,14 +103,14 @@ local big = e:toggle("big", { default = false })
 
 `ui:item(stack, size)` принимает и `{ material = "potion", model = 3 }` — предмет по материалу и модели. `nil` — пустое место под иконку. Размеры строк HUD — `strix.ui.sizes.item` (иконка предмета), `strix.ui.sizes.icon` и `strix.ui.sizes.row` (высота строки). `ui:header(title, meta, icon)` принимает вместо имени иконки и `function(ui)` — например, `ui:item(...)`.
 
-Цвета — `strix.ui.colors`: `text`, `text_muted`, `text_subtle`, `accent`, `success`, `warning`, `danger`, `trail`, `track`, `money`, `shards`, `level`, `blocks`. Форматы чисел HUD, как у встроенных элементов:
+Цвета — `strix.ui.colors`: `text`, `text_muted`, `text_subtle`, `accent`, `success`, `warning`, `danger`, `trail`, `track`. Цвета своих данных (статистика сервера и т. п.) скрипт задаёт сам — `strix.color`. Форматы чисел HUD, как у встроенных элементов:
 
 | Функция | Пример |
 |---|---|
-| `strix.format.decimal(v)` | `14.5`, `14` |
-| `strix.format.compact(v)` | `157`, `1.2K`, `4.7T` |
-| `strix.format.integer(v)` | `3 453 234` |
-| `strix.format.duration(ms)` | `2:05`, `1:02:05`; `nil` — `∞` |
+| `strix.format.decimal(v)` → `string` | `14.5`, `14` |
+| `strix.format.compact(v)` → `string` | `157`, `1.2K`, `4.7T` |
+| `strix.format.integer(v)` → `string` | `3 453 234` |
+| `strix.format.duration(ms)` → `string` | `2:05`, `1:02:05`; `nil` — `∞` |
 | `strix.format.percent(v)` | `1.05` → `105%` |
 
 ```lua

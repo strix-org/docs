@@ -74,7 +74,7 @@ end)
 | `render_2d` | `overlay, width, height, scale` | [Экран](render.md#экран) |
 | `render_3d` | `world, silhouettes` | [Мир](render.md#мир) |
 | `scene_frame` | `scene` | [Проходы кадра](render.md#проходы-кадра) |
-| `entity_outline` | `entity, owner, runes` | Верни ключ силуэта, см. [проходы кадра](render.md#проходы-кадра) |
+| `entity_outline` | `entity, owner, groups` | Верни ключ силуэта, см. [проходы кадра](render.md#проходы-кадра) |
 | `container_render` | `screen, overlay, ui, unit` | Поверх контейнерного экрана, см. [интерфейс](ui.md#панель-на-контейнере) |
 
 `entity_outline` и `hitbox` срабатывают на каждую сущность, а `mouse_move`, `render_2d` и `render_3d` очень часто. Подписка на них стоит заметного времени кадра.
