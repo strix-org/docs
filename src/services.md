@@ -85,7 +85,7 @@ r:release()           -- снять запрос
 ```lua
 local m = strix.module("WalkDemo")
 local walk = nil
-m:on("enable", function() walk = strix.agent.go_to(120, 64, -35) end)
+m:on("enable", function() walk = strix.agent.go_to(120, 64, -35, { records = "Ходьба" }) end)
 m:on("disable", function() if walk then walk:stop() end end)
 m:on("tick", function()
     if walk == nil then return end
@@ -97,7 +97,7 @@ end)
 
 | Функция | Что делает |
 |---|---|
-| `strix.agent.go_to(x, y, z)` → `StrixAgent` | Идти к блоку `x, y, z` (цель — ближайшее место, где можно стоять) |
+| `strix.agent.go_to(x, y, z, spec)` → `StrixAgent` | Идти к блоку `x, y, z` (цель — ближайшее место, где можно стоять). `spec.records` (необязательно) — вид записей: только включённые записи с этим именем (`{ records = "Ходьба" }`), без него — все включённые |
 
 У `StrixAgent`: `status()` → `(string, string?)` — `"walking"`, `"arrived"`, `"stopped"` (остановлен или заменён
 новым `go_to`), `"failed"` и причина: `"no_world"`, `"no_records"` (нет включённых записей), `"no_path"` (пути нет или
@@ -116,6 +116,7 @@ end)
 | `t,мс,yaw,pitch,x,y,z,клавиши` | Начало тика: взгляд, ноги, клавиши (`keys()`) |
 | `b,x,y,z` | Блок сломан в этом тике |
 | `f,мс,yaw,pitch` | Камера на кадре рендера (событие `scene_frame`) |
+| `e,x1,y1,z1,x2,y2,z2` | Хитбокс сущности-цели (моб, NPC) на начале тика — их даёт `entities`; для лучей записи это цель, как `d` |
 
 Мс — от начала записи. Клетки карты: `.` — воздух и проходимое (трава), `d` — цель (блоки из `targets`), `#` — прочее
 твёрдое и жидкость; вне карты — воздух, поэтому регион должен накрывать всё, где будет игрок. Клавиши — биты:
@@ -145,9 +146,11 @@ end)
 |---|---|
 | `strix.records.keys()` → `number` | Клавиши этого тика (биты выше) и прыжок авто-прыжка игры; нет игрока — 0 |
 | `strix.records.map(x1, y1, z1, x2, y2, z2, targets)` → `string` | Карта бокса блоков: заголовок и ряды `m`; `targets` (`{ "minecraft:stone" }`, необязательно) — цели `d`. Не больше ~4 млн клеток |
+| `strix.records.entities(types, radius)` → `string` | Строки `e` этого тика: хитбоксы сущностей видов `types` (`{ "minecraft:zombie" }`) не дальше `radius` от ног, кроме самого игрока; нет — `""` |
 | `strix.records.upload(name, data)` → `(boolean, string?)` | Запись в облако (упаковывается в `v3`); `false` и причина: `"offline"`, `"loading"`, `"full"` (нет слота), `"bad_format"`, `"empty"` |
 
-Загруженная запись появляется в списке записей Nuker и включается там же.
+Загруженная запись появляется в списке записей Nuker и включается там же. Имя записи — её вид: агент берёт записи
+одного вида (`go_to(…, { records = "Ходьба" })`). Готовый рекордер — `scripts/Recorder.luau` (`*rec [имя]`).
 
 ## `strix.combat`
 
