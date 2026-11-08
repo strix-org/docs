@@ -75,93 +75,6 @@ r:release()           -- снять запрос
 | `strix.rotations.step(current, target, step)` → `number` | Шаг к углу |
 | `strix.rotations.correct(yaw, pitch)` → `(number, number)` | Поворот, который может дать мышь при текущей чувствительности (шаг — по настройкам игры) |
 
-## `strix.agent`
-
-Агент ведёт игрока к точке: путь ищет по блокам вокруг, а идёт манерой игрока из включённых записей Nuker (клавиши и
-мышь — из похожих моментов записи, не по правилам). Атаки нет. Поход один: новый `go_to` заменяет прежний. Держи
-ручку, пока идёшь: собранная сборщиком мусора ручка (скрипт выгружен или забыл её) останавливает поход. Не включай
-вместе с Nuker — оба жмут клавиши.
-
-```lua
-local m = strix.module("WalkDemo")
-local walk = nil
-m:on("enable", function() walk = strix.agent.go_to(120, 64, -35, { records = "Ходьба" }) end)
-m:on("disable", function() if walk then walk:stop() end end)
-m:on("tick", function()
-    if walk == nil then return end
-    local status, why = walk:status()
-    if status == "arrived" then strix.log.info("дошли") end
-    if status == "failed" then strix.log.warn("не дошли: " .. tostring(why)) end
-end)
-```
-
-| Функция | Что делает |
-|---|---|
-| `strix.agent.look_at(yaw, pitch, spec)` → `StrixAgent` | Повернуть взгляд манерой записи: кусок записи с похожим поворотом мыши, подогнанный ровно под нужный, по кадрам; на месте, без клавиш. `status()` — `"walking"`, пока поворачивает, `"arrived"` — повернул. `spec.records` — вид записей |
-| `strix.agent.go_to(x, y, z, spec)` → `StrixAgent` | Идти к блоку `x, y, z` (цель — ближайшее место, где можно стоять). `spec.records` (необязательно) — вид записей: только включённые записи с этим именем (`{ records = "Ходьба" }`), без него — все включённые |
-
-`strix.agent.mind(spec)` → `StrixMind` — мозг бота: тело (свою сущность) ведёт скрипт, мозг по записям решает, что
-бот делает этот тик. `spec`: `map` — карта (текст `strix.records.map` или своя: заголовок и ряды `m`), `records` — вид
-записей (как у `go_to`), `bounds` — `{ x1, y1, z1, x2, y2, z2 }` бокса копания (необязательно), `yaw`/`pitch` —
-взгляд на старте. Нет включённых записей вида — ошибка. У `StrixMind`: `step(x, y, z)` → `{ keys, yaw, pitch, hit }`
-или `nil` (ноги бота → клавиши тика, взгляд после пути мыши, `hit` — `{ x, y, z }` блока, который ломает удар);
-`set(x, y, z, cell)` — клетка карты изменилась (`"air"`, `"target"`, `"wall"`: слом, сброс); `reset(yaw, pitch)` —
-телепорт. Боты рекордера — `scripts/Recorder.luau`.
-
-У `StrixAgent`: `status()` → `(string, string?)` — `"walking"`, `"arrived"`, `"stopped"` (остановлен или заменён
-новым `go_to`), `"failed"` и причина: `"no_world"`, `"no_records"` (нет включённых записей), `"no_path"` (пути нет или
-цель дальше ~200 блоков), `"stuck"`, `"no_match"`; `stop()` — остановить и отпустить клавиши.
-
-Пока: ходьба — только из записей копания, без плавания; полублоки и ступени — как целые блоки (вверх — прыжком), путь
-считается по снимку на старте и заново, когда игрок сбился или застрял.
-
-## `strix.records`
-
-Записи, по которым играют Nuker и агент: скрипт может писать их сам. Запись — текст по строкам (его читает и `upload`):
-
-| Строка | Что |
-|---|---|
-| `# strix-mine v2 min=x,y,z max=x,y,z` и ряды `m,y,z,клетки` | Карта региона на старте — её даёт `map` |
-| `t,мс,yaw,pitch,x,y,z,клавиши` | Начало тика: взгляд, ноги, клавиши (`keys()`) |
-| `b,x,y,z` | Блок сломан в этом тике |
-| `f,мс,yaw,pitch` | Камера на кадре рендера (событие `scene_frame`) |
-| `e,x1,y1,z1,x2,y2,z2` | Хитбокс сущности-цели (моб, NPC) на начале тика — их даёт `entities`; для лучей записи это цель, как `d` |
-
-Мс — от начала записи. Клетки карты: `.` — воздух и проходимое (трава), `d` — цель (блоки из `targets`), `#` — прочее
-твёрдое и жидкость; вне карты — воздух, поэтому регион должен накрывать всё, где будет игрок. Клавиши — биты:
-вперёд 1, назад 2, влево 4, вправо 8, прыжок 16, присед 32, спринт 64, атака 128, ПКМ 256.
-
-```lua
-local m = strix.module("RecorderDemo")
-local text, t0 = {}, 0
-local function ms() return math.floor((os.clock() - t0) * 1000) end
-m:on("enable", function()
-    local me = strix.mc().player
-    local x, y, z = math.floor(me:getX()), math.floor(me:getY()), math.floor(me:getZ())
-    text, t0 = { strix.records.map(x - 48, y - 16, z - 48, x + 48, y + 16, z + 48) }, os.clock()
-end)
-m:on("tick", function(mc)
-    local me = mc.player
-    if me == nil then return end
-    table.insert(text, string.format("t,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%d", ms(), me:getYRot(), me:getXRot(), me:getX(), me:getY(), me:getZ(), strix.records.keys()))
-end)
-m:on("disable", function()
-    local ok, why = strix.records.upload("Ходьба", table.concat(text, "\n"))
-    if not ok then strix.log.warn("не загружено: " .. tostring(why)) end
-end)
-```
-
-| Функция | Что делает |
-|---|---|
-| `strix.records.keys()` → `number` | Клавиши этого тика (биты выше) и прыжок авто-прыжка игры; нет игрока — 0 |
-| `strix.records.map(x1, y1, z1, x2, y2, z2, targets)` → `string` | Карта бокса блоков: заголовок и ряды `m`; `targets` (`{ "minecraft:stone" }`, необязательно) — цели `d`. Не больше ~4 млн клеток |
-| `strix.records.breaks(kind)` → `{ { min, size, breaks } }` | Свои сломы записей вида `kind` (все, и выключенные; без вида — все): низ и размер региона карты, блоки `{ x, y, z }`, сломанные под прицелом игрока. Покрытие шахты рекордера |
-| `strix.records.entities(types, radius)` → `string` | Строки `e` этого тика: хитбоксы сущностей видов `types` (`{ "minecraft:zombie" }`) не дальше `radius` от ног, кроме самого игрока; нет — `""` |
-| `strix.records.upload(name, data)` → `(boolean, string?)` | Запись в облако (упаковывается в `v3`); `false` и причина: `"offline"`, `"loading"`, `"full"` (нет слота), `"bad_format"`, `"empty"` |
-
-Загруженная запись появляется в списке записей Nuker и включается там же. Имя записи — её вид: агент берёт записи
-одного вида (`go_to(…, { records = "Ходьба" })`). Готовый рекордер — `scripts/Recorder.luau` (`*rec [имя]`).
-
 ## `strix.combat`
 
 | Функция | Что делает |
@@ -273,7 +186,7 @@ end
 | `strix.explosion.CRYSTAL_POWER` | Сила взрыва кристалла |
 | `strix.account()` → `string?` | Имя аккаунта Strix или `nil` |
 | `strix.i18n.t(key)` → `string`, `strix.i18n.set(key, translations)` | Перевод, свой перевод (`translations` — `{ en, ru }`) |
-| `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`), `hud.mine` — виртуальная шахта рекордера в BPS (`{ left, done }`: блоков до сброса и доля выкопанного до него). Значения скрипта снимаются при его выгрузке |
+| `strix.shared.set(key, value)` | Данные для встроенных элементов, `nil` — снять. `hud.effects` — свои строки Эффектов (`{ { id, name, modifier, left_ms, frac, color, kind, icon } }`, `kind`: `potion`/`booster`/`effect`, `icon`: `{ item, model }`, `{ pixel }`, `{ sprite }` или `{ letter }`), `hud.combo` — комбо в BPS (`{ booster, next_booster, blocks, required_blocks }`). Значения скрипта снимаются при его выгрузке |
 
 ## Что недоступно из скрипта
 
