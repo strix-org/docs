@@ -28,12 +28,12 @@ end
 </div>
 
 <style>
-#sdk-ref input, #sdk-ref select { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--table-border-color); background: var(--bg); color: var(--fg); }
+#sdk-ref input, #sdk-ref select { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-base); color: var(--text); }
 #sdk-ref input { width: min(420px, 100%); }
-#sdk-results details { border-bottom: 1px solid var(--table-border-color); padding: 6px 0; }
-#sdk-results summary { cursor: pointer; font-family: var(--mono-font); overflow-wrap: anywhere; }
+#sdk-results details { border-bottom: 1px solid var(--border); padding: 6px 0; }
+#sdk-results summary { cursor: pointer; font-family: var(--md-code-font-family); overflow-wrap: anywhere; }
 #sdk-results ul { margin: 6px 0 0; padding-left: 18px; }
-#sdk-results li { font-family: var(--mono-font); font-size: 0.85em; overflow-wrap: anywhere; }
+#sdk-results li { font-family: var(--md-code-font-family); font-size: 0.85em; overflow-wrap: anywhere; }
 </style>
 
 <script>

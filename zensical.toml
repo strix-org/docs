@@ -1,0 +1,68 @@
+[project]
+site_name = "strix Lua API"
+site_description = "API скриптов Strix на Luau: модули, события, хуки, рисование, интерфейс и сервисы клиента."
+site_url = "https://strix-org.github.io/docs/"
+docs_dir = "src"
+# Оглавление для literate-nav и GitBook, отдельной страницей не нужно
+exclude_docs = "SUMMARY.md"
+site_dir = "book"
+# Адреса как у mdBook (events.html), чтобы старые ссылки не сломались
+use_directory_urls = false
+extra_css = ["strix.css"]
+
+[project.extra]
+generator = false
+
+[project.theme]
+language = "ru"
+custom_dir = "theme"
+favicon = "favicon.svg"
+logo = "favicon.svg"
+font = false
+features = [
+  "content.action.copy",
+  "content.code.copy",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.tracking",
+  "search.highlight",
+]
+
+[[project.theme.palette]]
+scheme = "slate"
+
+[project.plugins.literate-nav]
+nav_file = "SUMMARY.md"
+
+[project.plugins.llmstxt]
+full_output = "llms-full.txt"
+
+[project.plugins.llmstxt.sections]
+"Страницы" = [
+  { "README.md" = "Что такое Strix Lua API, первый скрипт, с чего начать" },
+  { "getting-started.md" = "Вкладка, редактор, консоль, жизненный цикл скрипта, ограничения" },
+  { "modules.md" = "`strix.module`, все виды настроек, чужие модули" },
+  { "events.md" = "Все события и их аргументы, отмена" },
+  { "hooks.md" = "Код внутри методов игры: виды, якоря, `ctx`" },
+  { "threads.md" = "Сетевой поток, отмена входящих пакетов, `strix.main`" },
+  { "java.md" = "Вызов методов и полей Minecraft" },
+  { "sdk.md" = "Классы и члены Minecraft, доступные мосту, с поиском по версии игры" },
+  { "render.md" = "Мир, экран, силуэты, цветокоррекция" },
+  { "ui.md" = "Компоненты, окна, элементы HUD" },
+  { "services.md" = "Инвентарь, ротации, бой, сеть, мир и остальное" },
+  { "changelog.md" = "Изменения API по версиям" },
+]
+
+# Якоря с кириллицей, как у mdBook: на них ссылаются страницы и внешние ссылки
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+toc = { permalink = true, slugify = { object = "pymdownx.slugs.slugify", kwds = { case = "lower" } } }
+pymdownx.details = {}
+pymdownx.highlight = { anchor_linenums = true, line_spans = "__span", pygments_lang_class = true }
+pymdownx.inlinehilite = {}
+pymdownx.superfences = {}
+pymdownx.tabbed = { alternate_style = true }

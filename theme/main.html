@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block extrahead %}
+  <link rel="alternate" type="text/plain" title="llms.txt" href="{{ 'llms.txt' | url }}">
+{% endblock %}
+{% block content %}
+  <p class="agent-hint">Для нейросетей: индекс документации — <a href="{{ 'llms.txt' | url }}" tabindex="-1">llms.txt</a>, вся документация одним файлом — <a href="{{ 'llms-full.txt' | url }}" tabindex="-1">llms-full.txt</a>. У каждой страницы есть версия в Markdown: замени .html в адресе на .md.</p>
+  {{ super() }}
+{% endblock %}

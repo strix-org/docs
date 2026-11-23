@@ -2,8 +2,8 @@
 
 Документация по API скриптов Strix: https://strix-org.github.io/docs/
 
-Страницы лежат в `src/`. Сайт собирается mdBook и выкладывается на GitHub Pages при пуше в `main`.
+Страницы лежат в `src/`, оглавление — `src/SUMMARY.md`. Сайт собирается [Zensical](https://zensical.org) (`zensical.toml`) и выкладывается на GitHub Pages при пуше в `main`.
 
-Тема — `theme/`, цвета и шрифт из дизайн-системы продукта (`strix-ui`). `scripts/postbuild.py` добавляет в сборку `llms.txt`, `llms-full.txt` и `.md` страниц для нейросетей, а также `search.json` для поиска: встроенный индекс mdBook не понимает кириллицу.
+Тема — стандартная Zensical, `theme/strix.css` задаёт только шрифт и цвета из дизайн-системы продукта (`strix-ui`). `llms.txt`, `llms-full.txt` и `.md` страниц для нейросетей собирает встроенный плагин `llmstxt`; описания страниц для `llms.txt` — в `zensical.toml`.
 
-Локально: `mdbook build && python3 scripts/postbuild.py`, затем раздать `book/` любым статическим сервером.
+Локально: `uvx zensical serve`, сайт на http://localhost:8000/docs/. Сборка в `book/` — `uvx zensical build`.
